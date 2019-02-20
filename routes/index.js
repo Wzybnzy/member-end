@@ -16,6 +16,7 @@ router.post('/api/add', function(req, res, next) {
         age = params.age,
         phone = params.phone,
         address = params.address,
+        id = params.id,
         card = params.card; //身份证号
     if (!name || !card) {
         res.send({ code: 2, message: "请完善信息" });
@@ -24,13 +25,25 @@ router.post('/api/add', function(req, res, next) {
     }
 
     function getIsHas() {
-        mongodb.find(dbBase, dbColl, { card: card }, function(result) {
-            if (result.length > 0) { //该用户已经存在
-                res.send({ code: 3, message: "该用户已经存在" });
-            } else { //添加
-                addUser();
-            }
-        });
+        if (id) { //修改
+            delete params.id;
+            mongodb.update(dbBase, dbColl, [{ _id: id }, params], function(result) {
+                if (result) {
+                    res.send({ code: 0, message: "修改成功" });
+                } else {
+                    res.send({ code: 1, message: "修改失败" });
+                }
+            });
+        } else {
+            mongodb.find(dbBase, dbColl, { card: card }, function(result) {
+                if (result.length > 0) { //该用户已经存在
+                    res.send({ code: 3, message: "该用户已经存在" });
+                } else { //添加
+                    addUser();
+                }
+            });
+        }
+
     }
 
     function addUser() {
@@ -86,15 +99,15 @@ router.get('/api/del/', function(req, res, next) {
 });
 
 //修改
-router.post('/api/update/', function(req, res, next) {
-    var params = req.body,
-        id = params.id;
-    mongodb.update(dbBase, dbColl, [{ _id: id }, params], function(result) {
-        if (result) {
-            res.send({ code: 0, message: "修改成功" });
-        } else {
-            res.send({ code: 1, message: "修改失败" });
-        }
-    });
-});
+// router.post('/api/update/', function(req, res, next) {
+//     var params = req.body,
+//         id = params.id;
+//     mongodb.update(dbBase, dbColl, [{ _id: id }, params], function(result) {
+//         if (result) {
+//             res.send({ code: 0, message: "修改成功" });
+//         } else {
+//             res.send({ code: 1, message: "修改失败" });
+//         }
+//     });
+// });
 module.exports = router;
