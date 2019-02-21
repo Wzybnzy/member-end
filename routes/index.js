@@ -62,8 +62,10 @@ router.post('/api/add', function(req, res, next) {
 router.get('/api/list', function(req, res, next) {
     var params = req.query,
         page = params.page, //1
-        pageSize = params.pageSize; //10
-    mongodb.find(dbBase, dbColl, {}, function(result) {
+        pageSize = params.pageSize, //10
+        search = params.search || ''; //王
+    var searchObj = search ? { name: { $regex: search } } : {};
+    mongodb.find(dbBase, dbColl, searchObj, function(result) {
         var len = result.length;
         var total = Math.ceil(len / pageSize); //总页码数
         renderList(total);
@@ -71,7 +73,7 @@ router.get('/api/list', function(req, res, next) {
 
     function renderList(total) {
         var skip = (page - 1) * pageSize;
-        mongodb.find(dbBase, dbColl, {}, function(result) {
+        mongodb.find(dbBase, dbColl, searchObj, function(result) {
             if (result.length > 0) {
                 res.send({ code: 0, data: result, total: total });
             } else {
