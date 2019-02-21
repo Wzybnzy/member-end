@@ -59,16 +59,39 @@ router.post('/api/add', function(req, res, next) {
 });
 
 //查看列表
-router.get('/api/list', function(res, res, next) {
-    mongodb.find(dbBase, dbColl, function(result) {
-        console.log(result);
-        if (result.length > 0) {
-            res.send({ code: 0, data: result });
-        } else {
-            res.send({ code: 1, message: "查询列表失败" });
-
-        }
+router.get('/api/list', function(req, res, next) {
+    var params = req.query,
+        page = params.page, //1
+        pageSize = params.pageSize; //10
+    mongodb.find(dbBase, dbColl, {}, function(result) {
+        var len = result.length;
+        var total = Math.ceil(len / pageSize); //总页码数
+        renderList(total);
     });
+
+    function renderList(total) {
+        var skip = (page - 1) * pageSize;
+        mongodb.find(dbBase, dbColl, {}, function(result) {
+            if (result.length > 0) {
+                res.send({ code: 0, data: result, total: total });
+            } else {
+                res.send({ code: 0, message: "查询失败" });
+            }
+        }, {
+            skip: skip,
+            limit: pageSize
+        });
+    }
+
+    // mongodb.find(dbBase, dbColl, function(result) {
+    //     console.log(result);
+    //     if (result.length > 0) {
+    //         res.send({ code: 0, data: result });
+    //     } else {
+    //         res.send({ code: 1, message: "查询列表失败" });
+
+    //     }
+    // });
 });
 //查看详情
 router.get('/api/detail/', function(req, res, next) {
